@@ -18,11 +18,47 @@
 - 自动生成 Python Flask 代理代码
 - 输出 Burp `autoDecoder` 对接说明，支持端到端联调
 - 支持AntiDebug_Breaker的11项反调试能力
+
+## 项目结构
+```latex
+js-reverse-automation--skill/
+├── README.md # 项目说明、使用方式、更新说明和结构说明。
+├── SKILL.md # Skill 主控文件。只负责定义任务如何被触发、必须输入什么、流程怎么分阶段、输出和验收怎么要求。
+├── agents/
+│   └── openai.yaml # Skill 的 agent 入口配置。负责定义默认提示词、默认输入格式和执行约束。
+├── artifacts/ # 运行期目录，用来承接流程中间产物和最终校验报告。预期会出现的文件如下：
+│   ├── artifacts/phase0_input.json # 规范化后的输入
+│   ├── artifacts/phase1_trace.json # 浏览器链路复现结果
+│   ├── artifacts/phase2_entrypoints.json # 参数入口识别结果
+│   ├── artifacts/phase3_dependencies.json # 依赖、上下文和调用方式提取结果
+│   └── artifacts/validation_report.json # 最终校验报告
+├── references/
+│   ├── references/workflow-recon.md # 阶段流程说明书。
+│   ├── references/output-contract.md # 输入输出契约说明书。
+│   ├── references/failure-recovery.md # 失败恢复和诊断格式说明书。
+│   ├── references/validation-checklist.md # 验收标准说明书。
+│   └── references/antidebug/
+│       ├── references/antidebug/debugger-loop.md # 处理无限 debugger、eval、Function 类问题。
+│       ├── references/antidebug/console-detect.md # 处理控制台检测、日志篡改、清屏等问题。
+│       ├── references/antidebug/timer-check.md # 处理时间差、性能计时、Promise 时序检测。
+│       ├── references/antidebug/env-detect.md # 处理窗口大小、webdriver、UA、DevTools 检测等环境识别问题。
+│       ├── references/antidebug/proxy-guard.md # 处理跳转、关闭页面、history、代理拦截等链路阻断问题。
+│       └── references/antidebug/dynamic-alias.md # 处理动态别名、wrapper、resolver 型入口和不稳定路径。
+└── scripts/
+    ├── scripts/check_inputs.py # 输入校验器。
+    ├── scripts/emit_analysis_result.py # 统一分析产物生成器。
+    ├── scripts/emit_jsrpc_stub.py # JSRPC 代码生成器。
+    ├── scripts/emit_flask_proxy.py # Flask 代理生成器。
+    ├── scripts/emit_burp_doc.py # Burp autoDecoder 文档生成器。
+    └── scripts/validate_artifacts.py # 全链路校验器。
+```
+
 ## 使用示意
 这边演示使用的是codex5.3（其他平台同理）
 
 1、下载skills放置在codex的skills目录中，mac端的路径为`/Users/用户名/.codex/skills/`
-<img width="822" height="290" alt="image" src="https://github.com/user-attachments/assets/400d26de-8571-412a-bf5c-894ba8041fbd" />
+<img width="880" height="296" alt="image" src="https://github.com/user-attachments/assets/0740b150-1508-46f1-bd76-2c6c9afa3bca" />
+
 
 2、将chrome-devtools-mcp服务写进 Codex 的配置
 
@@ -58,20 +94,23 @@ args = ["-y", "chrome-devtools-mcp@latest"]
 7、输入所需要的信息
 
 ```
-1、目标网址（完整 URL）： 
-2、需要分析的加密参数名（如 sign / enc / token）： 
-3、可复现请求示例（优先给 fetch/抓包原始请求）： 
-4、环境限制（浏览器版本、是否需要代理/插件、是否允许注入）：
+    Target URL: 
+    Parameters To Analyze: 
+    Environment Constraints: 
+    Optional Fetch Example:
 ```
+<img width="1546" height="876" alt="image" src="https://github.com/user-attachments/assets/a7359fdb-949c-40da-9c63-ea1e47b4be32" />
 
-<img width="1546" height="410" alt="image" src="https://github.com/user-attachments/assets/bdc49469-5a09-4ac4-871a-02cdd78d1bdb" />
 8、等待程序运行完成即可
-<img width="1494" height="1258" alt="image" src="https://github.com/user-attachments/assets/f50dfe64-8690-42e9-8230-25056b5a84bf" />
+<img width="1736" height="1016" alt="image" src="https://github.com/user-attachments/assets/76874d70-06c7-4a42-8cdf-de64e75e9c49" />
+
 
 ## 效果检验
 
 1、启动JSRPC
-<img width="2204" height="1358" alt="image" src="https://github.com/user-attachments/assets/b7927337-f959-4c70-8c13-f477d491a784" />
+<img width="1354" height="354" alt="image" src="https://github.com/user-attachments/assets/2be18d21-18b8-4594-b1ff-25e9126e5348" />
+
+
 
 2、在浏览器开发者工具的Console中，执行JSRpc项目中的 JsEnv_Dev.js文件内容。
 <img width="1980" height="1332" alt="image" src="https://github.com/user-attachments/assets/d2d7a299-f354-459c-b624-9d7d95abe130" />
@@ -118,12 +157,10 @@ curl -X POST http://127.0.0.1:8888/encode \
 ### 2026-02-11
 - 新增 11 个反调试补充技能，完善对复杂目标的反调试对抗能力。
 
-# 首发地址
-
-【AI赋能】MCP+Skill能力下的前端JS逆向自动化落地
-
-作者：Fausto
-
-https://xz.aliyun.com/news/91527
-
-文章转载自 先知社区
+### 2026-03-10
++ 将 Skill 重构为“主控文件 + 参考规则 + 生成器 + 校验器 + 中间产物”架构，**输出质量更稳定、更高可用**
++ 新增统一中间产物 `analysis_result.json`
++ 新增输入校验器、分析产物生成器、JSRPC 生成器、Flask 生成器、Burp 文档生成器、统一校验器
++ 新增流程文档、输出契约、失败恢复、验收清单
++ 将 `references/antidebug` 从嵌套子 Skill 重构为参考规则集合
++ 明确 `artifacts/` 作为阶段产物和校验报告目录
