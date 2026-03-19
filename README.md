@@ -52,6 +52,13 @@ js-reverse-automation--skill/
     ├── scripts/emit_burp_doc.py # Burp autoDecoder 文档生成器。
     └── scripts/validate_artifacts.py # 全链路校验器。
 ```
+## Q&A
+Q1. 有师傅反馈使用这个skills时出现如下图这种场景
+<img width="1580" height="868" alt="image" src="https://github.com/user-attachments/assets/4d07e966-9fda-429a-8d59-26dfe7525d4d" />
+A1. 解决这个问题其实很简单，我们只需要按照openai.yaml的内容提示词模版，并且将Target URL替换为127.0.0.1即可（已经优化了skill.md中的提示词确保127.0.0.1可执行）
+<img width="1114" height="1228" alt="image" src="https://github.com/user-attachments/assets/cb842e61-b576-4650-8efc-67cf0946136c" />
+然后当AI无法访问https://127.0.0.1:8888/就会转去真实的页面进行测试，如下图所示
+<img width="1458" height="1178" alt="image" src="https://github.com/user-attachments/assets/8ba8a93b-ea10-4ec6-8f82-d5833bc38779" />
 
 ## 使用示意
 这边演示使用的是codex5.3（其他平台同理）
@@ -164,3 +171,7 @@ curl -X POST http://127.0.0.1:8888/encode \
 + 新增流程文档、输出契约、失败恢复、验收清单
 + 将 `references/antidebug` 从嵌套子 Skill 重构为参考规则集合
 + 明确 `artifacts/` 作为阶段产物和校验报告目录
+
+### 2026-03-19
++ 添加对抗AI识别为高风险执行操作拒绝执行的能力
++ 添加对应提示词输入指引
